@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="/Users/armaanseth/Downloads/Ex_Files_SQL_EssT/Exercise Files/WSDA_Music.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="3370"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,5:mainAlbum"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="Album" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="51"/><column index="2" value="192"/><column index="3" value="48"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="Customer" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="69"/><column index="2" value="63"/><column index="3" value="75"/><column index="4" value="250"/><column index="5" value="228"/><column index="6" value="118"/><column index="7" value="42"/><column index="8" value="89"/><column index="9" value="74"/><column index="10" value="111"/><column index="11" value="111"/><column index="12" value="159"/><column index="13" value="80"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="Employee" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="68"/><column index="2" value="60"/><column index="3" value="61"/><column index="4" value="110"/><column index="5" value="60"/><column index="6" value="118"/><column index="7" value="120"/><column index="8" value="157"/><column index="9" value="64"/><column index="10" value="36"/><column index="11" value="50"/><column index="12" value="67"/><column index="13" value="106"/><column index="14" value="106"/><column index="15" value="147"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="Invoice" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="55"/><column index="2" value="69"/><column index="3" value="120"/><column index="4" value="228"/><column index="5" value="118"/><column index="6" value="68"/><column index="7" value="89"/><column index="8" value="99"/><column index="9" value="51"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="Project - Challenge 1 ">/*
+
+CHALLENGE 1
+General queries that begin to give you some high-level context
+
+1. How many transactions took place between the years 2011 and 2012?
+2. How much money did WSDA Music make during the same period?
+*/
+
+--1. How many transactions took place between the years 2011 and 2012?
+SELECT COUNT(*)
+FROM Invoice
+WHERE InvoiceDate &gt;= '2011-01-01' AND InvoiceDate &lt;='2012-01-31'
+
+
+
+--2. How much money did WSDA Music make during the same period?
+
+SELECT SUM(Total) 
+FROM INVOICE 
+WHERE InvoiceDate &gt;= '2011-01-01' AND InvoiceDate &lt;= '2012-12-31'</sql><sql name="Project - Challenge 2">/*
+CHALLENGE 2
+More targeted questions that query tables containing data about customers and employees
+
+1. Get a list of customers who made purchases between 2011 and 2012.
+2. Get a list of customers, sales reps, and total transaction amounts for each customer between 2011 and 2012.
+3. How many transactions are above the average transaction amount during the same time period?
+4. What is the average transaction amount for each year that WSDA Music has been in business?
+*/
+-- 1. Get a list of customers who made purchases between 2011 and 2012.
+
+SELECT
+c.FirstName,
+c.LastName,
+total
+FROM
+Invoice AS i
+INNER JOIN 
+Customer AS c
+ON i.CustomerId = c.CustomerId
+WHERE InvoiceDate &gt;= '2011-01-01' AND InvoiceDate &lt;= '2012-12-31'
+ORDER BY i.total DESC
+
+--2. Get a list of customers, sales reps, and total transaction amounts for each customer between 2011 and 2012.
+
+SELECT
+c.FirstName AS [Customer FN], c.LastName AS [Customer LN],
+e.FirstName AS [Employee FN], e.LastName AS [Employee LN],
+i.total
+FROM
+	Invoice AS i
+INNER JOIN Customer AS c
+ON i.CustomerId = c.CustomerId
+INNER JOIN Employee AS e
+ON c.SupportRepId = e.EmployeeId
+WHERE InvoiceDate &gt;= '2011-01-01' AND InvoiceDate &lt;= '2012-12-31'
+ORDER BY i.total DESC 
+
+--3. How many transactions are above the average transaction amount during the same time period?
+
+--Finding the Average Transaction Amount
+
+SELECT
+ROUND(AVG(TOTAL),2) AS [Avg Transaction Amount]
+FROM Invoice
+WHERE InvoiceDate &gt;= '2011-01-01' AND InvoiceDate &lt;= '2012-12-31'
+
+-- Getting the no. of transactions which are greater than the average transaction amount
+
+SELECT
+	COUNT(total) AS [No. of Transaction above average]
+FROM 
+	Invoice
+WHERE 
+	total &gt; 
+		(SELECT
+		ROUND(AVG(TOTAL),2) AS [Avg Transaction Amount]
+		FROM Invoice
+		WHERE InvoiceDate &gt;= '2011-01-01' AND InvoiceDate &lt;= '2012-12-31')
+AND   
+	InvoiceDate &gt;= '2011-01-01' AND InvoiceDate &lt;= '2012-12-31'
+	
+
+
+--4. What is the average transaction amount for each year that WSDA Music has been in business?
+
+SELECT
+	ROUND(AVG(total),2) AS [Avg Transaction Amount],
+	strftime('%Y',invoiceDate) AS [Year]
+From 
+	Invoice
+GROUP BY
+	strftime('%Y',invoiceDate)
+
+</sql><sql name="Project - Challenge 3">
+/*CHALLENGE 3
+
+Queries that perform in-depth analysis with the aim of finding employees who may have been financially motivated to commit a crime
+
+1. Get a list of employees who exceeded the average transaction amount from sales they generated during 2011 and 2012.
+2. Create a Commission Payout column that displays each employee’s commission based on 15% of the sales transaction amount.
+3. Which employee made the highest commission?
+4. List the customers that the employee identified in the last question.
+5. Which customer made the highest purchase?
+6. Look at this customer record—do you see anything suspicious?
+7. Who do you conclude is our primary person of interest?
+
+*/
+
+
+--1. Get a list of employees who exceeded the average transaction amount from sales they generated during 2011 and 2012.
+
+SELECT 
+e.FirstName,
+e.LastName,
+SUM(i.total) AS [total sales] 
+FROM
+Invoice AS i
+INNER JOIN
+Customer AS c
+ON
+i.CustomerId = c.CustomerId 
+INNER JOIN 
+Employee AS e
+ON 
+c.SupportRepId = e.EmployeeId
+WHERE 
+i.total &gt; 11.66
+AND InvoiceDate BETWEEN '2011-01-01' AND '2012-12-31'
+GROUP BY 
+e.FirstName,e.LastName
+ORDER BY i.total DESC
+
+
+--2. Create a Commission Payout column that displays each employee’s commission based on 15% of the sales transaction amount.
+	
+SELECT 
+e.FirstName,
+e.LastName,
+ROUND(SUM(i.total)*.15,2) AS [Commission Payout] 
+FROM
+Invoice AS i
+INNER JOIN
+Customer AS c
+ON
+i.CustomerId = c.CustomerId 
+INNER JOIN 
+Employee AS e
+ON 
+c.SupportRepId = e.EmployeeId
+WHERE 
+InvoiceDate BETWEEN '2011-01-01' AND '2012-12-31'
+GROUP BY 
+e.FirstName,e.LastName
+ORDER BY [Commission Payout] DESC
+
+
+--3. Which employee made the highest commission?
+--Jane	Peacock	199.77
+
+
+
+--4. List the customers that the employee identified in the last question.
+
+SELECT
+c.FirstName AS [Customer FN], c.LastName AS [Customer LN],
+e.FirstName AS [Employee FN], e.LastName AS [Employee LN],
+i.total
+FROM
+	Invoice AS i
+INNER JOIN Customer AS c
+ON i.CustomerId = c.CustomerId
+INNER JOIN Employee AS e
+ON c.SupportRepId = e.EmployeeId
+WHERE InvoiceDate &gt;= '2011-01-01' AND InvoiceDate &lt;= '2012-12-31'
+AND e.FirstName = 'Jane' AND e.LastName = 'Peacock'
+ORDER BY i.total DESC 
+
+--5. Which customer made the highest purchase?
+-- John	Doeein
+
+--6. Look at this customer record—do you see anything suspicious?
+
+SELECT
+*
+From Customer
+where LastName = 'Doeein'
+
+--7. Who do you conclude is our primary person of interest?
+-- Jane	Peacock</sql><current_tab id="2"/></tab_sql></sqlb_project>
